@@ -4,7 +4,7 @@
 
 로컬에서, 결정론적으로 동작합니다. LLM 호출 없음, 텔레메트리 없음. TypeScript + Playwright.
 
-[English README](README.md) · [CI](../../actions/workflows/ci.yml) · MIT
+[English README](README.md) · [CI](../../actions/workflows/ci.yml) · MIT · [![npm](https://img.shields.io/npm/v/@developjik/agent-eye.svg)](https://www.npmjs.com/package/@developjik/agent-eye)
 
 ```
 $ agent-eye https://your.app/checkout
@@ -37,7 +37,14 @@ action truth      3/6 effective · 1 no-effect (16.7% false success) · 2 blocke
 
 ## 빠른 시작
 
-아직 npm에 배포되지 않아 소스에서 실행합니다.
+npm에 [`@developjik/agent-eye`](https://www.npmjs.com/package/@developjik/agent-eye)로 배포돼 있어 클론 없이 실행할 수 있습니다:
+
+```bash
+npx -y @developjik/agent-eye demo      # 내장 데모 스토어프론트를 프로파일링
+npx -y @developjik/agent-eye https://your.app/checkout --out agent-eye-report
+```
+
+Playwright Chromium은 첫 실행 때 내려받습니다. 소스에서 실행할 때(개발용):
 
 ```bash
 git clone https://github.com/developjik/agent-eye
@@ -46,7 +53,7 @@ npm install
 npx playwright install chromium      # Chromium이 이미 있으면 생략
 npm run build
 
-node dist/bin/agent-eye.js demo      # 내장 데모 스토어프론트를 프로파일링
+node dist/bin/agent-eye.js demo
 node dist/bin/agent-eye.js https://your.app/checkout --out agent-eye-report
 ```
 
