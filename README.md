@@ -4,7 +4,7 @@
 
 Local, deterministic, no LLM calls, no telemetry. TypeScript + Playwright.
 
-[한국어 README](README.ko.md) · [CI](../../actions/workflows/ci.yml) · MIT
+[한국어 README](README.ko.md) · [CI](../../actions/workflows/ci.yml) · MIT · [![npm](https://img.shields.io/npm/v/@developjik/agent-eye.svg)](https://www.npmjs.com/package/@developjik/agent-eye)
 
 ```
 $ agent-eye https://your.app/checkout
@@ -37,7 +37,14 @@ None of that is visible from the page's side, and none of it is in your CI. `age
 
 ## Quick start
 
-The package is not on npm yet, so run it from source:
+Published on npm as [`@developjik/agent-eye`](https://www.npmjs.com/package/@developjik/agent-eye) — no clone needed:
+
+```bash
+npx -y @developjik/agent-eye demo      # profiles the built-in demo storefront
+npx -y @developjik/agent-eye https://your.app/checkout --out agent-eye-report
+```
+
+Playwright's Chromium is downloaded on first run. To run from source instead (development):
 
 ```bash
 git clone https://github.com/developjik/agent-eye
@@ -46,7 +53,7 @@ npm install
 npx playwright install chromium      # skip if Chromium is already installed
 npm run build
 
-node dist/bin/agent-eye.js demo      # profiles the built-in demo storefront
+node dist/bin/agent-eye.js demo
 node dist/bin/agent-eye.js https://your.app/checkout --out agent-eye-report
 ```
 
