@@ -1,0 +1,50 @@
+{
+  "name": "agent-eye",
+  "version": "0.1.0",
+  "description": "Lighthouse for the page an AI agent reads: measure observation tokens per step, noise, idle churn, delta headroom, and false-success clicks on any URL, with a deterministic acceptance-test runner for CI.",
+  "keywords": [
+    "playwright",
+    "ai-agents",
+    "accessibility",
+    "aria",
+    "token-budget",
+    "browser-use",
+    "agent-browser",
+    "ci",
+    "web-quality"
+  ],
+  "license": "MIT",
+  "author": "Jung Ingwon (developjik)",
+  "repository": { "type": "git", "url": "git+https://github.com/developjik/agent-eye.git" },
+  "homepage": "https://github.com/developjik/agent-eye#readme",
+  "bugs": { "url": "https://github.com/developjik/agent-eye/issues" },
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "bin": { "agent-eye": "dist/bin/agent-eye.js" },
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": { ".": { "types": "./dist/src/index.d.ts", "import": "./dist/src/index.js" } },
+  "files": ["dist", "README.md", "README.ko.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node -e \"require('node:fs').chmodSync('dist/bin/agent-eye.js', 0o755)\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && vitest run",
+    "test:unit": "vitest run test/unit",
+    "test:e2e": "npm run build && vitest run test/e2e",
+    "demo": "npm run build && node dist/bin/agent-eye.js demo --out agent-eye-report",
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "gpt-tokenizer": "^4.1.2",
+    "playwright": "^1.65.1",
+    "yaml": "^2.8.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

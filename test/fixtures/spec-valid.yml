@@ -1,0 +1,19 @@
+name: fixture checkout
+url: https://example.com/cart
+budget:
+  tokensPerStep: 4000
+  maxFalseSuccess: 0
+steps:
+  - name: add an item
+    target:
+      role: button
+      name: Add to cart
+    expect:
+      - changed: true
+      - textContains: Added
+  - name: open the cart
+    target:
+      role: link
+      name: Cart
+    expect:
+      - urlContains: /cart

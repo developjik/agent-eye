@@ -1,0 +1,11 @@
+node_modules/
+dist/
+agent-eye-report/
+demo-report/
+coverage/
+*.tgz
+.DS_Store
+test-results/
+.test-out/
+.demo-tmp/
+.debug*.mjs

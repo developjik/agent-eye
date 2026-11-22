@@ -1,0 +1,36 @@
+# An acceptance run you can drop into any repo's CI.
+#   agent-eye run examples/checkout.acceptance.yml --out agent-eye-report
+#
+# Runs without a model: targets resolve from the compact interactive view
+# (role + accessible name), and every step is gated on an observable change.
+name: checkout acceptance
+url: http://127.0.0.1:3000/cart
+
+budget:
+  tokensPerStep: 8000
+  maxFalseSuccess: 0
+  maxChurnPct: 15
+
+steps:
+  - name: the cart shows the product
+    do: assert
+    expect:
+      - elementExists: { role: button, name: "Remove" }
+      - textContains: "Subtotal"
+
+  - name: add one more
+    target: { role: button, name: "Increase quantity" }
+    expect:
+      - changed: true
+      - countAtLeast: { selector: "[data-line-item]", n: 1 }
+
+  - name: remove it again
+    target: { role: button, name: "Remove" }
+    expect:
+      - changed: true
+      - textAbsent: "1 item in cart"
+
+  - name: checkout is reachable
+    do: assert
+    expect:
+      - elementExists: { role: button, name: "Place order" }
