@@ -1,5 +1,5 @@
 {
-  "name": "agent-eye",
+  "name": "@developjik/agent-eye",
   "version": "0.1.0",
   "description": "Lighthouse for the page an AI agent reads: measure observation tokens per step, noise, idle churn, delta headroom, and false-success clicks on any URL, with a deterministic acceptance-test runner for CI.",
   "keywords": [
@@ -15,16 +15,35 @@
   ],
   "license": "MIT",
   "author": "Jung Ingwon (developjik)",
-  "repository": { "type": "git", "url": "git+https://github.com/developjik/agent-eye.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/developjik/agent-eye.git"
+  },
   "homepage": "https://github.com/developjik/agent-eye#readme",
-  "bugs": { "url": "https://github.com/developjik/agent-eye/issues" },
+  "bugs": {
+    "url": "https://github.com/developjik/agent-eye/issues"
+  },
   "type": "module",
-  "engines": { "node": ">=20" },
-  "bin": { "agent-eye": "dist/bin/agent-eye.js" },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "agent-eye": "dist/bin/agent-eye.js"
+  },
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
-  "exports": { ".": { "types": "./dist/src/index.d.ts", "import": "./dist/src/index.js" } },
-  "files": ["dist", "README.md", "README.ko.md", "LICENSE"],
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.ko.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node -e \"require('node:fs').chmodSync('dist/bin/agent-eye.js', 0o755)\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
