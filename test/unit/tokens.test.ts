@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   claudeImageTokens,
@@ -9,7 +10,7 @@ import {
   pngSize,
 } from "../../src/tokens.js";
 import { TOOL_NAME, VERSION } from "../../src/version.js";
-import pkg from "../../package.json" with { type: "json" };
+const pkg = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8")) as { version: string };
 
 describe("token estimation", () => {
   it("counts text with the requested encoding", () => {
