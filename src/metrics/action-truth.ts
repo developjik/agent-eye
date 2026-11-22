@@ -45,7 +45,7 @@ export function isDestructiveName(name: string): boolean {
 
 /** The allowlist: only non-destructive, in-page toggles and buttons. */
 export function isSafeProbeTarget(el: RawElement): boolean {
-  if (el.hidden || el.disabled) return false;
+  if (el.hidden || el.clipped || el.disabled) return false;
   if (!el.name) return false;
   if (!ALLOWED_ROLES.has(el.role)) return false;
   if (el.tag === "a" || el.href) return false;

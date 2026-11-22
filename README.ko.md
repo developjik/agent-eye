@@ -200,7 +200,7 @@ JSON 리포트는 스키마 버전(`schemaVersion: 1`)이 고정돼 있고, 마�
 ```bash
 npm run typecheck    # tsc, emit 없음
 npm run build        # dist/ (bin 포함)
-npm test             # 빌드 + 유닛·Playwright e2e 테스트 51개
+npm test             # 빌드 + 유닛·Playwright e2e 테스트 57개
 npm run demo         # 빌드 + 데모
 npm run pack:check   # npm pack --dry-run
 ```

@@ -200,7 +200,7 @@ The "before" page is a plausible checkout: a cookie banner over the CTA, three i
 ```bash
 npm run typecheck    # tsc, no emit
 npm run build        # dist/ (bin included)
-npm test             # build + 51 unit and Playwright e2e tests
+npm test             # build + 57 unit and Playwright e2e tests
 npm run demo         # build + demo
 npm run pack:check   # npm pack --dry-run
 ```
