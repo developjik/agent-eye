@@ -159,7 +159,7 @@ CI에서 쓸모 있는 이유는 세 가지입니다.
       --format json,md --budget-tokens 8000 --max-false-success 5 --max-churn-pct 20
 ```
 
-JSON 리포트는 스키마 버전(`schemaVersion: 1`)이 고정돼 있고, 마크다운 리포트는 PR에 붙이기 좋게, `--format html`은 스타일과 스크린샷이 인라인된 단일 파일로 프리뷰 코멘트나 아티팩트에 쓰기 좋게 만들었습니다.
+프로필 JSON은 `schemaVersion: 2`, 수용 테스트 JSON은 `schemaVersion: 1`을 사용하며, 마크다운 리포트는 PR에 붙이기 좋게, `--format html`은 스타일과 스크린샷이 인라인된 단일 파일로 프리뷰 코멘트나 아티팩트에 쓰기 좋게 만들었습니다.
 
 ## 숫자의 의미
 
@@ -223,3 +223,5 @@ MIT
 ### 클릭 미측정
 
 클릭 검사를 끄거나 시도한 안전한 컨트롤이 없으면 `falseSuccessPct`는 측정된 0%가 아닌 `null`입니다. 보고서에 이유를 표시합니다. 이때 `--max-false-success` 게이트를 요청하면 실패하고 CLI는1로 종료합니다. 하나 이상 시도한 경우 기존 백분율과 임계값 계산을 유지합니다. 측정한 결과만 이 게이트를 통과할 수 있습니다.
+
+프로필 JSON은 `schemaVersion: 2`이며 `scorecard.falseSuccessPct`와 `actionTruth.falseSuccessPct`는 null을 허용합니다. 버전1 소비자는 null을 0이 아닌 미측정으로 처리해야 합니다. 별도 acceptance-run JSON 스키마는 버전1을 유지합니다.

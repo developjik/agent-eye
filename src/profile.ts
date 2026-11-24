@@ -246,7 +246,7 @@ function buildGates(options: ProfileOptions, scorecard: Scorecard, churn: ChurnR
     gates.push({
       name: "max-false-success",
       threshold: `≤ ${options.maxFalseSuccess}%`,
-      actual: scorecard.falseSuccessPct === null ? (options.probes === false ? "not measured: probes disabled" : "not measured: no safe controls attempted") : `${scorecard.falseSuccessPct}%`,
+      actual: scorecard.falseSuccessPct === null ? ((options.probes === false || options.maxProbes === 0) ? "not measured: probes disabled" : "not measured: no safe controls attempted") : `${scorecard.falseSuccessPct}%`,
       passed: scorecard.falseSuccessPct !== null && scorecard.falseSuccessPct <= options.maxFalseSuccess,
     });
   }
@@ -361,7 +361,7 @@ export async function profileUrl(options: ProfileOptions): Promise<ProfileOutcom
           : `${findings.length} finding(s), ${highCount} high — ${Math.round(tokensPerStep).toLocaleString("en-US")} tokens/step, ${scorecard.noisePct}% noise`;
 
     const report: ProfileReport = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       tool: { name: TOOL_NAME, version: VERSION },
       generatedAt: new Date().toISOString(),
       target: {

@@ -159,7 +159,7 @@ Gates: `all-steps-pass` (always), plus `tokens-per-step`, `false-success`, `idle
       --format json,md --budget-tokens 8000 --max-false-success 5 --max-churn-pct 20
 ```
 
-The JSON report is stable and versioned (`schemaVersion: 1`); the Markdown report is meant to be attached to a pull request, and `--format html` produces a single file with inline styles and an embedded screenshot for a preview comment or an artifact.
+Profile JSON uses `schemaVersion: 2`, while acceptance-run JSON keeps `schemaVersion: 1`; the Markdown report is meant to be attached to a pull request, and `--format html` produces a single file with inline styles and an embedded screenshot for a preview comment or an artifact.
 
 ## What the numbers mean
 
@@ -223,3 +223,5 @@ MIT
 ### Unmeasured click probes
 
 `falseSuccessPct` is `null` when probes are disabled or no safe control was attempted, not a measured 0%. Reports state the reason. A requested `--max-false-success` gate fails in either case and the CLI exits 1. With at least one attempted control, the existing percentage and threshold rules apply. Only measured results can pass this gate.
+
+Profile JSON uses `schemaVersion: 2`: `scorecard.falseSuccessPct` and `actionTruth.falseSuccessPct` are nullable. Consumers of version 1 must handle `null` as unmeasured, not zero. Acceptance-run JSON keeps its separate version 1 schema.
