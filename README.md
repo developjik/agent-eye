@@ -159,7 +159,7 @@ Gates: `all-steps-pass` (always), plus `tokens-per-step`, `false-success`, `idle
       --format json,md --budget-tokens 8000 --max-false-success 5 --max-churn-pct 20
 ```
 
-The JSON report is stable and versioned (`schemaVersion: 1`); the Markdown report is meant to be attached to a pull request, and `--format html` produces a single file with inline styles and an embedded screenshot for a preview comment or an artifact.
+Profile JSON uses `schemaVersion: 2`, while acceptance-run JSON keeps `schemaVersion: 1`; the Markdown report is meant to be attached to a pull request, and `--format html` produces a single file with inline styles and an embedded screenshot for a preview comment or an artifact.
 
 ## What the numbers mean
 
