@@ -219,3 +219,7 @@ Layout: `src/extract.ts` (in-page collection), `src/metrics/*` (bill, noise, chu
 ## License
 
 MIT
+
+### Unmeasured click probes
+
+`falseSuccessPct` is `null` when probes are disabled or no safe control was attempted, not a measured 0%. Reports state the reason. A requested `--max-false-success` gate fails in either case and the CLI exits 1. With at least one attempted control, the existing percentage and threshold rules apply. Only measured results can pass this gate.

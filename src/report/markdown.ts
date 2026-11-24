@@ -1,3 +1,4 @@
+import { actionMeasurementReason } from "../format.js";
 import { formatBytes, formatTokens } from "../tokens.js";
 import { pct } from "../format.js";
 import type { ProfileReport } from "../types.js";
@@ -38,7 +39,7 @@ export function renderMarkdownProfile(report: ProfileReport): string {
     `| idle churn | ${pct(report.scorecard.churnPct, 1)} of samples (${report.churn?.samples.filter((sample) => sample.changedVsPrevious > 0).length ?? 0}/${report.churn?.samples.length ?? 0}), ${pct(report.scorecard.churnMagnitudePct, 1)} of lines, ${formatTokens(report.churn?.tokensChurned ?? 0)} tokens rescanned, ${pct(report.churn?.refInvalidationPct ?? 0, 1)} refs invalidated |`,
   );
   out.push(`| delta headroom | ${pct(report.scorecard.deltaSavingsPct, 1)} |`);
-  out.push(`| false success | ${pct(report.scorecard.falseSuccessPct, 1)} |`);
+  out.push(`| false success | ${report.scorecard.falseSuccessPct === null ? `not measured: ${actionMeasurementReason(report)}` : pct(report.scorecard.falseSuccessPct, 1)} |`);
   out.push("");
 
   if (report.actionTruth) {

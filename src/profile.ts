@@ -180,7 +180,7 @@ function buildFindings(input: {
 
   if (actionTruth && actionTruth.noEffect > 0) {
     findings.push({
-      severity: actionTruth.falseSuccessPct >= 20 ? "high" : "medium",
+      severity: (actionTruth.falseSuccessPct ?? 0) >= 20 ? "high" : "medium",
       title: `${actionTruth.noEffect} of ${actionTruth.attempted} probed clicks changed nothing`,
       evidence: `${actionTruth.falseSuccessPct}% false success. ${actionTruth.controls
         .filter((control) => control.verdict === "no-effect")
@@ -246,8 +246,8 @@ function buildGates(options: ProfileOptions, scorecard: Scorecard, churn: ChurnR
     gates.push({
       name: "max-false-success",
       threshold: `≤ ${options.maxFalseSuccess}%`,
-      actual: `${scorecard.falseSuccessPct}%`,
-      passed: scorecard.falseSuccessPct <= options.maxFalseSuccess,
+      actual: scorecard.falseSuccessPct === null ? (options.probes === false ? "not measured: probes disabled" : "not measured: no safe controls attempted") : `${scorecard.falseSuccessPct}%`,
+      passed: scorecard.falseSuccessPct !== null && scorecard.falseSuccessPct <= options.maxFalseSuccess,
     });
   }
   if (options.maxChurnPct !== undefined) {
@@ -342,7 +342,7 @@ export async function profileUrl(options: ProfileOptions): Promise<ProfileOutcom
       churnPct: churn ? churn.unstableSamplePct : 0,
       churnMagnitudePct: churn ? churn.avgChangedPct : 0,
       deltaSavingsPct: delta ? delta.avgSavingsPct : 0,
-      falseSuccessPct: actionTruth ? actionTruth.falseSuccessPct : 0,
+      falseSuccessPct: actionTruth ? actionTruth.falseSuccessPct : null,
       occluded: noise.occluded.count,
       duplicateClusters: noise.duplicates.count,
       unnamed: noise.unnamed.count,

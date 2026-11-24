@@ -162,7 +162,7 @@ export interface ActionTruthReport {
   errored: number;
   /** Destructive or unsafe controls the prober refused to touch. */
   skipped: number;
-  falseSuccessPct: number;
+  falseSuccessPct: number | null;
   controls: ProbedControl[];
   /** Number of idle-volatile lines excluded from effect comparison. */
   volatileLines: number;
@@ -174,7 +174,7 @@ export interface Scorecard {
   churnPct: number;
   churnMagnitudePct: number;
   deltaSavingsPct: number;
-  falseSuccessPct: number;
+  falseSuccessPct: number | null;
   occluded: number;
   duplicateClusters: number;
   unnamed: number;

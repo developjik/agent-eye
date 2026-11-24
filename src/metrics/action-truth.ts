@@ -185,7 +185,7 @@ export async function measureActionTruth(page: Page, monitor: PageMonitor, optio
       blocked,
       errored,
       skipped,
-      falseSuccessPct: attempted > 0 ? round((noEffect / attempted) * 100, 1) : 0,
+      falseSuccessPct: attempted > 0 ? round((noEffect / attempted) * 100, 1) : null,
       controls,
       volatileLines: volatile.lines.size,
     },

@@ -1,3 +1,4 @@
+import { actionMeasurementReason } from "../format.js";
 import { readFileSync } from "node:fs";
 import { formatBytes, formatTokens } from "../tokens.js";
 import { pct } from "../format.js";
@@ -97,7 +98,7 @@ export function renderHtmlProfile(report: ProfileReport, screenshotPath?: string
   <div class="card"><b>${pct(report.scorecard.noisePct)}</b><span>noise of ${report.noise.analyzed} elements</span></div>
   <div class="card"><b>${pct(report.scorecard.churnPct, 1)}</b><span>idle samples changed (${pct(report.scorecard.churnMagnitudePct, 1)} of lines)</span></div>
   <div class="card"><b>${pct(report.scorecard.deltaSavingsPct, 1)}</b><span>delta headroom</span></div>
-  <div class="card"><b>${pct(report.scorecard.falseSuccessPct, 1)}</b><span>false success</span></div>
+  <div class="card"><b>${report.scorecard.falseSuccessPct === null ? `not measured: ${actionMeasurementReason(report)}` : pct(report.scorecard.falseSuccessPct, 1)}</b><span>false success</span></div>
 </div>
 <h2>Observation bill</h2>
 <table><thead><tr><th>mode</th><th class="num">bytes</th><th class="num">tokens</th><th class="num">vs cheapest text</th></tr></thead><tbody>${billRows}</tbody></table>
