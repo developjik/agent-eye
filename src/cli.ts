@@ -226,6 +226,9 @@ export async function runCli(argv: string[]): Promise<number> {
 
   try {
     if (command === "crawl") {
+      for (const name of VALUE_FLAGS) if (flags.has(name) && (flags.get(name) === '' || flags.get(name) === true)) throw new UsageError(`--${name} requires a value`);
+      for (const [name, min, max] of [['max-pages',1,1000],['concurrency',1,4]] as const) { const value = numberFlag(name); if (value !== undefined && (!Number.isInteger(value) || value < min || value > max)) throw new UsageError(`--${name} must be an integer from ${min} to ${max}`); }
+
       const url = needs(args[0], "crawl needs a URL: agent-eye crawl <url>");
       if (!/^https?:\/\//i.test(url)) throw new UsageError(`profile needs an http(s) URL, got "${url}"`);
       const outDir = stringFlag("out");
