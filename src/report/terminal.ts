@@ -1,3 +1,4 @@
+import { actionMeasurementReason } from "../format.js";
 import { formatBytes, formatTokens } from "../tokens.js";
 import { pct, renderTable, truncate, type TableRow } from "../format.js";
 import type { ProfileReport } from "../types.js";
@@ -53,7 +54,9 @@ export function renderTerminalProfile(report: ProfileReport): string {
     {
       cells: [
         "action truth",
-        report.actionTruth
+        report.scorecard.falseSuccessPct === null
+          ? `not measured: ${actionMeasurementReason(report)}`
+          : report.actionTruth
           ? `${report.actionTruth.effective}/${report.actionTruth.attempted} effective · ${report.actionTruth.noEffect} no-effect (${pct(report.actionTruth.falseSuccessPct, 1)} false success) · ${report.actionTruth.blocked} blocked · ${report.actionTruth.skipped} skipped`
           : "not measured",
       ],
@@ -104,9 +107,13 @@ export function renderTerminalProfile(report: ProfileReport): string {
 
 export function renderComparison(before: ProfileReport, after: ProfileReport): string {
   const rows: TableRow[] = [];
-  const metric = (label: string, pick: (report: ProfileReport) => number, unit: string): void => {
+  const metric = (label: string, pick: (report: ProfileReport) => number | null, unit: string): void => {
     const a = pick(before);
     const b = pick(after);
+    if (a === null || b === null) {
+      rows.push({ cells: [label, a === null ? `not measured: ${actionMeasurementReason(before)}` : `${a}${unit}`, b === null ? `not measured: ${actionMeasurementReason(after)}` : `${b}${unit}`, "not comparable"] });
+      return;
+    }
     const delta = a > 0 ? ((b - a) / a) * 100 : 0;
     rows.push({
       cells: [label, `${formatTokens(a)}${unit}`, `${formatTokens(b)}${unit}`, `${delta >= 0 ? "+" : ""}${delta.toFixed(1)}%`],
