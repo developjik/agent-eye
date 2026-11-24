@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { test, expect } from 'vitest';
 import { parseSitemap } from '../../src/crawl-input.js';
 import { runCli } from '../../src/cli.js';
-import { crawlSite, renderCrawlHtml } from '../../src/crawl.js';
+import { crawlSite, renderCrawlHtml, renderCrawlMarkdown, renderCrawlTerminal } from '../../src/crawl.js';
 
 test('profiles 100 real pages with bounded sitemap crawling, ranks, gates, and failure isolation', async () => {
   let origin = '';
@@ -70,4 +70,27 @@ test('redirect final errors, canonical duplicates, SVG discovery, bad state and 
 test('sitemap rejects missing locations and bounded malformed entity parsing', () => {
   expect(()=>parseSitemap('<urlset><url><lastmod>today</lastmod></url><url><loc>https://example.com/a</loc></url></urlset>')).toThrow(/loc/);
   const start=Date.now();expect(()=>parseSitemap('<urlset><url><loc>'+ '&'.repeat(100000) +'x</loc></url></urlset>')).toThrow();expect(Date.now()-start).toBeLessThan(1000);
+});
+
+
+test('invalid links do not break BFS, hash destinations stay distinct, no-content navigation keeps document status', async () => {
+  let origin=''; const server=createServer((req,res)=>{
+    if(req.url==='/sitemap.xml'){res.writeHead(404);res.end();return;}
+    if(req.url==='/one'||req.url==='/two'){res.writeHead(302,{location:'/spa#'+req.url.slice(1)});res.end();return;}
+    if(req.url==='/empty'){res.writeHead(204);res.end();return;}
+    res.setHeader('content-type','text/html');
+    res.end(req.url==='/'?'<button>Root</button><a href="http://[broken">Bad URL</a><a href="/one">One</a><a href="/two">Two</a><a href="/nc">No content nav</a>':req.url==='/nc'?'<button>Still here</button><script>setTimeout(()=>location.href="/empty",10)</script>':'<button>SPA</button>');
+  });await new Promise<void>(r=>server.listen(0,'127.0.0.1',r));const addr=server.address();if(!addr||typeof addr==='string')throw new Error('port');origin=`http://127.0.0.1:${addr.port}`;
+  try{
+    const {report}=await crawlSite({url:origin,churnMs:0});
+    expect(report.summary.failed).toBe(0);expect(report.summary.complete).toBe(4);expect(report.pages.some(p=>p.duplicateOf)).toBe(false);
+    expect(report.pages.find(p=>p.url.endsWith('/nc'))?.report?.target.status).toBe(200);
+    const page=report.pages[1]!;page.duplicateOf=origin+'/spa';page.report!.verdict.summary='FAIL token budget exceeded';
+    expect(renderCrawlTerminal(report)).toContain('FAIL token budget exceeded');expect(renderCrawlMarkdown(report)).toContain('FAIL token budget exceeded');expect(renderCrawlHtml(report)).toContain('FAIL token budget exceeded');
+  }finally{await new Promise<void>(r=>server.close(()=>r()));}
+},30000);
+
+test('unescaped ampersands cannot hide before valid entities',()=>{
+  expect(()=>parseSitemap('<urlset><url><loc>https://example.com/?a=1&b=2&amp;c=3</loc></url></urlset>')).toThrow(/entity/);
+  expect(parseSitemap('<urlset><url><loc>https://example.com/?a=1&amp;b=2</loc></url></urlset>').locations).toEqual(['https://example.com/?a=1&b=2']);
 });
