@@ -57,6 +57,14 @@ describe("cli", () => {
     expect(result.code, result.stderr).toBe(1);
   }, 180_000);
 
+  it("fails a requested click gate when probes are explicitly zero", async () => {
+    const result = await withDemoServer(baseUrl =>
+      cli(["profile", `${baseUrl}/checkout-clean`, "--churn-ms", "0", "--probes", "0", "--max-false-success", "0"]),
+    );
+    expect(result.code, result.stderr).toBe(1);
+    expect(result.stdout).toContain("not measured: probes disabled");
+  }, 180_000);
+
   it("runs a spec file and reports the gate result", async () => {
     mkdirSync(OUT, { recursive: true });
     const result = await withDemoServer((baseUrl) => {
