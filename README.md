@@ -223,3 +223,5 @@ MIT
 ### Unmeasured click probes
 
 `falseSuccessPct` is `null` when probes are disabled or no safe control was attempted, not a measured 0%. Reports state the reason. A requested `--max-false-success` gate fails in either case and the CLI exits 1. With at least one attempted control, the existing percentage and threshold rules apply. Only measured results can pass this gate.
+
+Profile JSON uses `schemaVersion: 2`: `scorecard.falseSuccessPct` and `actionTruth.falseSuccessPct` are nullable. Consumers of version 1 must handle `null` as unmeasured, not zero. Acceptance-run JSON keeps its separate version 1 schema.
