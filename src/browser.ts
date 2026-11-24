@@ -75,6 +75,7 @@ export async function openSession(options: LaunchOptions = {}): Promise<BrowserS
     executablePath,
     args: ["--disable-dev-shm-usage", "--no-sandbox"],
   });
+  try {
   const context = await browser.newContext({
     viewport: options.viewport ?? { width: 1280, height: 900 },
     deviceScaleFactor: 1,
@@ -96,6 +97,7 @@ export async function openSession(options: LaunchOptions = {}): Promise<BrowserS
       await browser.close().catch(() => undefined);
     },
   };
+  } catch (error) { await browser.close().catch(() => undefined); throw error; }
 }
 
 /** Wait until the page looks settled: load, quiet network for a moment, small pause. */
