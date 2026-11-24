@@ -1,3 +1,4 @@
+import { crawlSite, renderCrawlTerminal } from "./crawl.js";
 import { loadSpec } from "./run/spec.js";
 import { runAcceptance } from "./run/runner.js";
 import { profileUrl } from "./profile.js";
@@ -8,6 +9,7 @@ import type { TokenizerName } from "./types.js";
 import { TOOL_NAME, VERSION } from "./version.js";
 
 const VALUE_FLAGS = new Set([
+  "sitemap", "max-pages", "concurrency",
   "out",
   "format",
   "churn-ms",
@@ -85,6 +87,7 @@ const HELP = `agent-eye ${VERSION} — what an AI agent actually sees on your pa
 
 Usage
   agent-eye <url>                 profile a page (same as \`agent-eye profile <url>\`)
+  agent-eye crawl <url>           same-origin sitemap or BFS site profiles
   agent-eye profile <url>         observation bill, noise, churn, delta headroom, action truth
   agent-eye run <spec.yaml|json>  run a deterministic acceptance spec and gate the result
   agent-eye demo                  profile and test the built-in demo storefront
@@ -111,6 +114,12 @@ Profile options
   --chromium <path>           use a specific Chromium binary (or AGENT_EYE_CHROMIUM)
   --timeout <ms>              navigation timeout
   --quiet                     no terminal report (exit code and files only)
+
+Crawl options (plus profile budgets/measurement options)
+  --sitemap <url>             explicit same-origin sitemap/index (optional)
+  --max-pages <n>             1..1000, default100
+  --concurrency <n>           1..4, default2
+  Probes/screenshots default off for crawl. Partial/error/truncated crawl exits1.
 
 Run options
   --out <dir> --format <...>  same as profile
@@ -216,6 +225,45 @@ export async function runCli(argv: string[]): Promise<number> {
   }
 
   try {
+    if (command === "crawl") {
+      const url = needs(args[0], "crawl needs a URL: agent-eye crawl <url>");
+      if (!/^https?:\/\//i.test(url)) throw new UsageError(`profile needs an http(s) URL, got "${url}"`);
+      const outDir = stringFlag("out");
+      const probes = numberFlag("probes");
+      const probesDisabled = flags.get("probes") === false;
+      const { report, paths } = await crawlSite({
+        url,
+        sitemap: stringFlag("sitemap"), maxPages: numberFlag("max-pages"), concurrency: numberFlag("concurrency"),
+        ...(outDir ? { outDir, formats: formats(["json", "md"]) } : {}),
+        tokenizer: tokenizer(),
+        ...(viewport() ? { viewport: viewport() } : {}),
+        churnMs: numberFlag("churn-ms") ?? 1_500,
+        churnIntervalMs: numberFlag("churn-interval") ?? 250,
+        probes: probesDisabled ? false : probes === undefined ? false : probes > 0,
+        maxProbes: probes ?? 5,
+        maxElements: numberFlag("max-elements") ?? 400,
+        freezeAnimations: boolFlag("freeze", true),
+        fullPageScreenshot: boolFlag("screenshot", false),
+        ...(stringFlag("storage-state") ? { storageState: stringFlag("storage-state") } : {}),
+        waitUntil: (stringFlag("wait-until") as "load" | "domcontentloaded" | "networkidle" | undefined) ?? "load",
+        ...(numberFlag("budget-tokens") !== undefined ? { budgetTokens: numberFlag("budget-tokens") } : {}),
+        ...(numberFlag("max-false-success") !== undefined ? { maxFalseSuccess: numberFlag("max-false-success") } : {}),
+        ...(numberFlag("max-churn-pct") !== undefined ? { maxChurnPct: numberFlag("max-churn-pct") } : {}),
+        ...(numberFlag("max-noise-pct") !== undefined ? { maxNoisePct: numberFlag("max-noise-pct") } : {}),
+        headless: !boolFlag("headed", false),
+        ...(stringFlag("chromium") ? { executablePath: stringFlag("chromium") } : {}),
+        ...(numberFlag("timeout") !== undefined ? { timeoutMs: numberFlag("timeout") } : {}),
+        ...(quiet ? {} : { log: (line: string) => stderr.write(`· ${line}\n`) }),
+      });
+      if (!quiet) stdout.write(`${renderCrawlTerminal(report)}\n`);
+      if (paths) {
+        for (const [kind, filePath] of Object.entries(paths)) {
+          if (filePath) stdout.write(`${kind}: ${filePath}\n`);
+        }
+      }
+      return report.exitCode;
+    }
+
     if (command === "profile") {
       const url = needs(args[0], "profile needs a URL: agent-eye profile <url>");
       if (!/^https?:\/\//i.test(url)) throw new UsageError(`profile needs an http(s) URL, got "${url}"`);
