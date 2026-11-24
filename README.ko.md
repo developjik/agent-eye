@@ -159,7 +159,7 @@ CI에서 쓸모 있는 이유는 세 가지입니다.
       --format json,md --budget-tokens 8000 --max-false-success 5 --max-churn-pct 20
 ```
 
-JSON 리포트는 스키마 버전(`schemaVersion: 1`)이 고정돼 있고, 마크다운 리포트는 PR에 붙이기 좋게, `--format html`은 스타일과 스크린샷이 인라인된 단일 파일로 프리뷰 코멘트나 아티팩트에 쓰기 좋게 만들었습니다.
+프로필 JSON은 `schemaVersion: 2`, 수용 테스트 JSON은 `schemaVersion: 1`을 사용하며, 마크다운 리포트는 PR에 붙이기 좋게, `--format html`은 스타일과 스크린샷이 인라인된 단일 파일로 프리뷰 코멘트나 아티팩트에 쓰기 좋게 만들었습니다.
 
 ## 숫자의 의미
 
