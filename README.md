@@ -297,9 +297,10 @@ warnings, not proof of intent; no findings is not a safety certificate.
 
 Requested/final URL or timestamp differences and incomplete scan observations
 are explicit warnings. Timestamp equality does not establish equal page contents.
-Exit0 means both sources were read and matched without coverage warnings, **not**
+Timestamp-only differences are advisory and do not fail CI. Exit0 means both
+sources were read and targets matched without incomplete coverage, **not**
 that either tool passed its own gates or that the page is safe. Exit1 means a
-missing/failed/mismatched/incomplete input; exit2 is CLI usage. Existing profile,
+missing/failed/target-mismatched/incomplete input; exit2 is CLI usage. Existing profile,
 run, crawl and their exit codes are unchanged. Output uses a fresh audit-* folder.
 
 Each local input must be a non-symlink regular JSON file below20MB. Reports retain
