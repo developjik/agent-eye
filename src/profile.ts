@@ -27,6 +27,8 @@ import type {
 import { TOOL_NAME, VERSION } from "./version.js";
 
 export interface ProfileOptions {
+  /** Collect a bounded set of main-frame links before probes, for crawl. */
+  collectLinks?: boolean;
   url: string;
   outDir?: string;
   formats?: ReportFormat[];
@@ -52,6 +54,7 @@ export interface ProfileOptions {
 }
 
 export interface ProfileOutcome {
+  links?: string[];
   report: ProfileReport;
   paths: ReportPaths | null;
 }
@@ -287,6 +290,7 @@ export async function profileUrl(options: ProfileOptions): Promise<ProfileOutcom
     await settle(page);
     const finalUrl = page.url();
     const title = await page.title();
+    const links = options.collectLinks ? await page.locator("a[href]").evaluateAll(nodes => nodes.slice(0, 2001).map(node => (node as HTMLAnchorElement).href)) : undefined;
     log(`settled on ${finalUrl}`);
 
     const extracted = (await page.evaluate(extractPageElements, {
@@ -397,7 +401,7 @@ export async function profileUrl(options: ProfileOptions): Promise<ProfileOutcom
       paths = writeProfileReports(report, options.outDir, options.formats ?? ["json", "md"], screenshotPath);
     }
 
-    return { report, paths };
+    return { report, paths, ...(links ? { links } : {}) };
   } finally {
     await session.close();
   }
