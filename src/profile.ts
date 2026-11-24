@@ -285,12 +285,15 @@ export async function profileUrl(options: ProfileOptions): Promise<ProfileOutcom
   const { page, monitor } = session;
 
   try {
+    let navigationStatus: number | null = null;
+    if (options.collectLinks !== undefined) page.on('response', response => { if (response.request().isNavigationRequest() && response.frame() === page.mainFrame()) navigationStatus = response.status(); });
     const response = await page.goto(options.url, { waitUntil: options.waitUntil ?? "load", timeout: options.timeoutMs ?? 30_000 });
-    const httpStatus = response?.status() ?? null;
+    let httpStatus = response?.status() ?? null;
     await settle(page);
+    if (options.collectLinks !== undefined) httpStatus = navigationStatus ?? httpStatus;
     const finalUrl = page.url();
     const title = await page.title();
-    const links = options.collectLinks ? await page.locator("a[href]").evaluateAll(nodes => nodes.slice(0, 2001).map(node => (node as HTMLAnchorElement).href)) : undefined;
+    const links = options.collectLinks ? await page.locator("a[href]").evaluateAll(nodes => nodes.slice(0, 2001).map(node => new URL(node.getAttribute("href") ?? "", document.baseURI).href)) : undefined;
     log(`settled on ${finalUrl}`);
 
     const extracted = (await page.evaluate(extractPageElements, {
