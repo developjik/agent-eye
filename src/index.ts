@@ -20,3 +20,5 @@ export type * from "./types.js";
 export type * from "./run/types.js";
 
 export * from './crawl.js';
+
+export * from './audit.js';
