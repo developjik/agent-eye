@@ -1,0 +1,303 @@
+{
+  "schema": "agentleak.snapshot/v1",
+  "product": "agentleak",
+  "version": "0.1.0",
+  "createdAt": "2026-11-24T13:58:45.979Z",
+  "url": "http://127.0.0.1:35749/",
+  "finalUrl": "http://127.0.0.1:35749/",
+  "baselineUa": "browser",
+  "userAgents": [
+    {
+      "id": "browser",
+      "label": "Chromium fixture",
+      "userAgent": "Local fixture browser",
+      "kind": "browser"
+    }
+  ],
+  "robots": {
+    "found": false,
+    "blocksAll": false,
+    "disallowedAgents": []
+  },
+  "observations": [
+    {
+      "uaId": "browser",
+      "label": "Chromium fixture",
+      "userAgent": "Local fixture browser",
+      "kind": "browser",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:35749/",
+      "title": "Local vector fixture",
+      "blocked": false,
+      "durationMs": 560,
+      "byteLength": 86,
+      "rawHtml": "<html><title>Local vector fixture</title><main><button>Continue</button></main></html>",
+      "rawTextBlocks": [
+        {
+          "text": "Local vector fixture",
+          "kind": "title"
+        }
+      ],
+      "visibleText": "Continue",
+      "visibleChars": 8,
+      "innerText": "Continue",
+      "domText": "Continue",
+      "hiddenBlocks": [],
+      "comments": [],
+      "attributes": [],
+      "metadata": [],
+      "responseMs": 1
+    }
+  ],
+  "cloaking": {
+    "baselineUa": "browser",
+    "suspected": false,
+    "blockedBots": [],
+    "pairs": []
+  },
+  "findings": [],
+  "vectors": [
+    {
+      "axis": "accept-language",
+      "uaId": "browser",
+      "baseline": {
+        "uaId": "browser",
+        "label": "Chromium fixture",
+        "userAgent": "Local fixture browser",
+        "kind": "browser",
+        "status": 200,
+        "finalUrl": "http://127.0.0.1:35749/",
+        "title": "Local vector fixture",
+        "blocked": false,
+        "durationMs": 560,
+        "byteLength": 86,
+        "rawHtml": "<html><title>Local vector fixture</title><main><button>Continue</button></main></html>",
+        "rawTextBlocks": [
+          {
+            "text": "Local vector fixture",
+            "kind": "title"
+          }
+        ],
+        "visibleText": "Continue",
+        "visibleChars": 8,
+        "innerText": "Continue",
+        "domText": "Continue",
+        "hiddenBlocks": [],
+        "comments": [],
+        "attributes": [],
+        "metadata": [],
+        "responseMs": 1
+      },
+      "variant": {
+        "uaId": "browser",
+        "label": "Chromium fixture",
+        "userAgent": "Local fixture browser",
+        "kind": "browser",
+        "status": 200,
+        "finalUrl": "http://127.0.0.1:35749/",
+        "title": "Local vector fixture",
+        "blocked": false,
+        "durationMs": 551,
+        "byteLength": 86,
+        "rawHtml": "<html><title>Local vector fixture</title><main><button>Continue</button></main></html>",
+        "rawTextBlocks": [
+          {
+            "text": "Local vector fixture",
+            "kind": "title"
+          }
+        ],
+        "visibleText": "Continue",
+        "visibleChars": 8,
+        "innerText": "Continue",
+        "domText": "Continue",
+        "hiddenBlocks": [],
+        "comments": [],
+        "attributes": [],
+        "metadata": [],
+        "responseMs": 1
+      },
+      "comparison": {
+        "uaId": "browser",
+        "label": "Chromium fixture",
+        "status": 200,
+        "statusChanged": false,
+        "identicalHtml": true,
+        "similarity": 1,
+        "botOnly": [],
+        "browserOnly": [],
+        "byteDelta": 0,
+        "verdict": "same",
+        "renderedSimilarity": 1
+      },
+      "responseDeltaMs": 0
+    },
+    {
+      "axis": "referer",
+      "uaId": "browser",
+      "baseline": {
+        "uaId": "browser",
+        "label": "Chromium fixture",
+        "userAgent": "Local fixture browser",
+        "kind": "browser",
+        "status": 200,
+        "finalUrl": "http://127.0.0.1:35749/",
+        "title": "Local vector fixture",
+        "blocked": false,
+        "durationMs": 560,
+        "byteLength": 86,
+        "rawHtml": "<html><title>Local vector fixture</title><main><button>Continue</button></main></html>",
+        "rawTextBlocks": [
+          {
+            "text": "Local vector fixture",
+            "kind": "title"
+          }
+        ],
+        "visibleText": "Continue",
+        "visibleChars": 8,
+        "innerText": "Continue",
+        "domText": "Continue",
+        "hiddenBlocks": [],
+        "comments": [],
+        "attributes": [],
+        "metadata": [],
+        "responseMs": 1
+      },
+      "variant": {
+        "uaId": "browser",
+        "label": "Chromium fixture",
+        "userAgent": "Local fixture browser",
+        "kind": "browser",
+        "status": 200,
+        "finalUrl": "http://127.0.0.1:35749/",
+        "title": "Local vector fixture",
+        "blocked": false,
+        "durationMs": 544,
+        "byteLength": 86,
+        "rawHtml": "<html><title>Local vector fixture</title><main><button>Continue</button></main></html>",
+        "rawTextBlocks": [
+          {
+            "text": "Local vector fixture",
+            "kind": "title"
+          }
+        ],
+        "visibleText": "Continue",
+        "visibleChars": 8,
+        "innerText": "Continue",
+        "domText": "Continue",
+        "hiddenBlocks": [],
+        "comments": [],
+        "attributes": [],
+        "metadata": [],
+        "responseMs": 1
+      },
+      "comparison": {
+        "uaId": "browser",
+        "label": "Chromium fixture",
+        "status": 200,
+        "statusChanged": false,
+        "identicalHtml": true,
+        "similarity": 1,
+        "botOnly": [],
+        "browserOnly": [],
+        "byteDelta": 0,
+        "verdict": "same",
+        "renderedSimilarity": 1
+      },
+      "responseDeltaMs": 0
+    },
+    {
+      "axis": "session",
+      "uaId": "browser",
+      "baseline": {
+        "uaId": "browser",
+        "label": "Chromium fixture",
+        "userAgent": "Local fixture browser",
+        "kind": "browser",
+        "status": 200,
+        "finalUrl": "http://127.0.0.1:35749/",
+        "title": "Local vector fixture",
+        "blocked": false,
+        "durationMs": 560,
+        "byteLength": 86,
+        "rawHtml": "<html><title>Local vector fixture</title><main><button>Continue</button></main></html>",
+        "rawTextBlocks": [
+          {
+            "text": "Local vector fixture",
+            "kind": "title"
+          }
+        ],
+        "visibleText": "Continue",
+        "visibleChars": 8,
+        "innerText": "Continue",
+        "domText": "Continue",
+        "hiddenBlocks": [],
+        "comments": [],
+        "attributes": [],
+        "metadata": [],
+        "responseMs": 1
+      },
+      "variant": {
+        "uaId": "browser",
+        "label": "Chromium fixture",
+        "userAgent": "Local fixture browser",
+        "kind": "browser",
+        "status": 200,
+        "finalUrl": "http://127.0.0.1:35749/",
+        "title": "Local vector fixture",
+        "blocked": false,
+        "durationMs": 556,
+        "byteLength": 86,
+        "rawHtml": "<html><title>Local vector fixture</title><main><button>Continue</button></main></html>",
+        "rawTextBlocks": [
+          {
+            "text": "Local vector fixture",
+            "kind": "title"
+          }
+        ],
+        "visibleText": "Continue",
+        "visibleChars": 8,
+        "innerText": "Continue",
+        "domText": "Continue",
+        "hiddenBlocks": [],
+        "comments": [],
+        "attributes": [],
+        "metadata": [],
+        "responseMs": 1,
+        "sessionWarm": true
+      },
+      "comparison": {
+        "uaId": "browser",
+        "label": "Chromium fixture",
+        "status": 200,
+        "statusChanged": false,
+        "identicalHtml": true,
+        "similarity": 1,
+        "botOnly": [],
+        "browserOnly": [],
+        "byteDelta": 0,
+        "verdict": "same",
+        "renderedSimilarity": 1
+      },
+      "responseDeltaMs": 0
+    }
+  ],
+  "summary": {
+    "pages": 1,
+    "userAgents": 1,
+    "visibleChars": 8,
+    "hiddenBlocks": 0,
+    "hiddenChars": 0,
+    "comments": 0,
+    "attributeBlocks": 0,
+    "cloakedPairs": 0,
+    "blockedBots": 0,
+    "unicodeHits": 0,
+    "findingsBySeverity": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "leak": false,
+    "leakCount": 0
+  }
+}
