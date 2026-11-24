@@ -211,7 +211,7 @@ export interface ProfileTarget {
 }
 
 export interface ProfileReport {
-  schemaVersion: 1;
+  schemaVersion: 2;
   tool: { name: string; version: string };
   generatedAt: string;
   target: ProfileTarget;
