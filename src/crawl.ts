@@ -8,7 +8,7 @@ import { httpUrl, integer, parseSitemap, sitemapText } from './crawl-input.js';
 export interface CrawlOptions extends Omit<ProfileOptions, 'url' | 'collectLinks'> {
   url: string; sitemap?: string; maxPages?: number; concurrency?: number;
 }
-export interface CrawlPage { url: string; report?: ProfileReport; error?: string }
+export interface CrawlPage { url: string; duplicateOf?: string; report?: ProfileReport; error?: string }
 export interface CrawlReport {
   schema: 'agent-eye.crawl/v1'; generatedAt: string; url: string; pages: CrawlPage[];
   warnings: string[]; summary: { complete: number; failed: number; totalTokens: number; averageTokens: number; averageNoisePct: number };
@@ -43,7 +43,7 @@ export async function crawlSite(options: CrawlOptions): Promise<{ report: CrawlR
         else add(url.href);
       }
     }
-    if (maps.length) capped = true;
+    if (maps.some(url => !visited.has(url))) capped = true;
     if (known.size) bfs = false;
   } catch (error) {
     if (options.sitemap) throw error;
@@ -69,10 +69,15 @@ export async function crawlSite(options: CrawlOptions): Promise<{ report: CrawlR
     for (const result of results) { pages.push(result.page); for (const url of result.links) add(url); }
   }
   if (capped) warnings.push(`Discovery truncated at configured limits (maxPages=${max})`);
-  const complete = pages.filter(p => p.report && !p.error);
+  const canonical = new Set<string>();
+  for (const p of pages) if (p.report && !p.error) {
+    const final = httpUrl(p.report.target.finalUrl).href;
+    if (canonical.has(final)) p.duplicateOf = final; else canonical.add(final);
+  }
+  const complete = pages.filter(p => p.report && !p.error && !p.duplicateOf);
   const totalTokens = complete.reduce((n,p) => n + p.report!.scorecard.tokensPerStep, 0);
   const report: CrawlReport = { schema: 'agent-eye.crawl/v1', generatedAt: new Date().toISOString(), url: root.href, pages, warnings,
-    summary: { complete: complete.length, failed: pages.length - complete.length, totalTokens, averageTokens: complete.length ? totalTokens / complete.length : 0, averageNoisePct: complete.length ? complete.reduce((n,p) => n + p.report!.scorecard.noisePct, 0) / complete.length : 0 },
+    summary: { complete: complete.length, failed: pages.filter(p => p.error).length, totalTokens, averageTokens: complete.length ? totalTokens / complete.length : 0, averageNoisePct: complete.length ? complete.reduce((n,p) => n + p.report!.scorecard.noisePct, 0) / complete.length : 0 },
     tokenRanking: complete.map(p => ({ url:p.url, tokens:p.report!.scorecard.tokensPerStep })).sort((a,b) => b.tokens-a.tokens),
     noiseRanking: complete.map(p => ({ url:p.url, noisePct:p.report!.scorecard.noisePct })).sort((a,b) => b.noisePct-a.noisePct),
     exitCode: pages.some(p => p.error || p.report?.verdict.exitCode === 1) || warnings.length ? 1 : 0 };
@@ -91,16 +96,16 @@ function html(s: string): string { return plain(s).replace(/&/g,'&amp;').replace
 function md(s: string): string { return plain(s).replace(/&/g,'&amp;').replace(/[<>\[\]()`*_!|\\]/g,c=>`&#${c.charCodeAt(0)};`); }
 export function renderCrawlTerminal(r: CrawlReport): string {
   const lines = [`agent-eye crawl: ${r.summary.complete} complete, ${r.summary.failed} failed`, `Compact tokens: total ${r.summary.totalTokens}; mean ${r.summary.averageTokens.toFixed(1)}; mean noise ${r.summary.averageNoisePct.toFixed(1)}%`];
-  for (const p of r.pages) lines.push(`${plain(p.url)} | ${p.error ? 'ERROR '+plain(p.error) : `${p.report!.scorecard.tokensPerStep} tokens | ${p.report!.scorecard.noisePct}% noise | ${p.report!.verdict.status}`}`);
+  for (const p of r.pages) lines.push(`${plain(p.url)} | ${p.error ? 'ERROR '+plain(p.error) : p.duplicateOf ? 'DUPLICATE '+plain(p.duplicateOf) : `${p.report!.scorecard.tokensPerStep} tokens | ${p.report!.scorecard.noisePct}% noise | ${p.report!.verdict.status}`}`);
   lines.push('Highest tokens:',...r.tokenRanking.slice(0,10).map(p=>`${p.tokens} ${plain(p.url)}`),'Highest noise:',...r.noiseRanking.slice(0,10).map(p=>`${p.noisePct}% ${plain(p.url)}`));
   for (const w of r.warnings) lines.push('Warning: '+plain(w)); return lines.join('\n')+'\n';
 }
 export function renderCrawlMarkdown(r: CrawlReport): string {
   const lines = ['# agent-eye crawl','',`${r.summary.complete} complete; ${r.summary.failed} failed. Total compact tokens ${r.summary.totalTokens}, mean ${r.summary.averageTokens.toFixed(1)}, mean noise ${r.summary.averageNoisePct.toFixed(1)}%.`,'','| URL | Tokens | Noise | Status |','| --- | ---: | ---: | --- |'];
-  for (const p of r.pages) lines.push(`| ${md(p.url)} | ${p.error ? 'n/a' : p.report!.scorecard.tokensPerStep} | ${p.error ? 'n/a' : p.report!.scorecard.noisePct+'%'} | ${md(p.error ?? p.report!.verdict.summary)} |`);
+  for (const p of r.pages) lines.push(`| ${md(p.url)} | ${p.error ? 'n/a' : p.report!.scorecard.tokensPerStep} | ${p.error ? 'n/a' : p.report!.scorecard.noisePct+'%'} | ${md(p.error ?? (p.duplicateOf ? 'DUPLICATE '+p.duplicateOf : p.report!.verdict.summary))} |`);
   lines.push('','## Highest tokens','',...r.tokenRanking.slice(0,10).map(p=>`- ${p.tokens}: ${md(p.url)}`),'','## Highest noise','',...r.noiseRanking.slice(0,10).map(p=>`- ${p.noisePct}%: ${md(p.url)}`));
   for (const w of r.warnings) lines.push('- Warning: '+md(w)); return lines.join('\n')+'\n';
 }
 export function renderCrawlHtml(r: CrawlReport): string {
-  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none';style-src 'unsafe-inline'"><title>agent-eye crawl</title><style>body{font:16px system-ui;max-width:1200px;margin:32px auto;padding:0 20px;color:#17202a}table{border-collapse:collapse;width:100%}td,th{padding:10px;border:1px solid #ccd3da;text-align:left;overflow-wrap:anywhere}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style><h1>agent-eye crawl</h1><p>${r.summary.complete} complete; ${r.summary.failed} failed. Total compact tokens ${r.summary.totalTokens}; average ${r.summary.averageTokens.toFixed(1)}; average noise ${r.summary.averageNoisePct.toFixed(1)}%.</p><table><thead><tr><th>URL</th><th>Tokens</th><th>Noise</th><th>Status</th></tr></thead><tbody>${r.pages.map(p=>`<tr><td>${html(p.url)}</td><td>${p.error?'n/a':p.report!.scorecard.tokensPerStep}</td><td>${p.error?'n/a':p.report!.scorecard.noisePct+'%'}</td><td>${html(p.error ?? p.report!.verdict.summary)}</td></tr>`).join('')}</tbody></table><h2>Rankings and warnings</h2><pre>${html(renderCrawlTerminal(r))}</pre></html>`;
+  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none';style-src 'unsafe-inline'"><title>agent-eye crawl</title><style>body{font:16px system-ui;max-width:1200px;margin:32px auto;padding:0 20px;color:#17202a}table{border-collapse:collapse;width:100%}td,th{padding:10px;border:1px solid #ccd3da;text-align:left;overflow-wrap:anywhere}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style><h1>agent-eye crawl</h1><p>${r.summary.complete} complete; ${r.summary.failed} failed. Total compact tokens ${r.summary.totalTokens}; average ${r.summary.averageTokens.toFixed(1)}; average noise ${r.summary.averageNoisePct.toFixed(1)}%.</p><table><thead><tr><th>URL</th><th>Tokens</th><th>Noise</th><th>Status</th></tr></thead><tbody>${r.pages.map(p=>`<tr><td>${html(p.url)}</td><td>${p.error?'n/a':p.report!.scorecard.tokensPerStep}</td><td>${p.error?'n/a':p.report!.scorecard.noisePct+'%'}</td><td>${html(p.error ?? (p.duplicateOf ? 'DUPLICATE '+p.duplicateOf : p.report!.verdict.summary))}</td></tr>`).join('')}</tbody></table><h2>Rankings and warnings</h2><pre>${html(renderCrawlTerminal(r))}</pre></html>`;
 }
