@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { constants, closeSync, fstatSync, mkdirSync, mkdtempSync, openSync, readSync, writeFileSync } from 'node:fs';
+import { constants, closeSync, fstatSync, mkdirSync, mkdtempSync, lstatSync, openSync, readSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { ReportFormat, ReportPaths } from './report/write.js';
@@ -19,7 +19,7 @@ function validateEye(d:Obj){
  if(d.schemaVersion!==2||!object(d.tool)||d.tool.name!=='agent-eye'||!string(d.tool.version)||!object(d.target)||!object(d.scorecard)||!object(d.verdict)||!Array.isArray(d.bill))throw Error('Expected agent-eye profile schemaVersion2');
  url(d.target.url);url(d.target.finalUrl);time(d.generatedAt);
  if(!finite(d.scorecard.tokensPerStep)||!finite(d.scorecard.noisePct)||d.scorecard.noisePct>100||!string(d.verdict.status)||!string(d.verdict.summary))throw Error('Invalid profile metrics/verdict');
- if(d.target.status===null||!finite(d.target.status)||d.target.status>=400)throw Error('Profile target did not return a successful HTTP response');
+ if(!(d.target.status===null||finite(d.target.status)))throw Error('Invalid HTTP status');
 }
 function validateLeak(d:Obj){
  if(d.schema!=='agentleak.snapshot/v1'||!string(d.product)||!string(d.version)||!object(d.summary)||!Array.isArray(d.findings)||!Array.isArray(d.observations)||!object(d.cloaking))throw Error('Expected agentleak.snapshot/v1');
@@ -32,25 +32,30 @@ function validateLeak(d:Obj){
 function source(file:string|undefined,validate:(d:Obj)=>void):AuditSource {
  if(!file)return{state:'missing',file:null};const absolute=resolve(file);
  let fd:number|undefined;
- try{fd=openSync(absolute,constants.O_RDONLY|constants.O_NOFOLLOW);const stat=fstatSync(fd);if(!stat.isFile()||stat.size>20_000_000)throw Error('Input must be a regular JSON file below20MB');
+ try{const before=lstatSync(absolute);if(!before.isFile()||before.isSymbolicLink())throw Error('Input must not be a symlink');fd=openSync(absolute,constants.O_RDONLY|(constants.O_NOFOLLOW??0));const stat=fstatSync(fd);const after=lstatSync(absolute);if(after.isSymbolicLink()||before.dev!==stat.dev||before.ino!==stat.ino||after.dev!==stat.dev||after.ino!==stat.ino)throw Error('Input changed while opening');if(!stat.isFile()||stat.size>20_000_000)throw Error('Input must be a regular JSON file below20MB');
  const buffer=Buffer.alloc(20_000_001);let count=0;while(count<buffer.length){const n=readSync(fd,buffer,count,buffer.length-count,null);if(!n)break;count+=n;}if(count>20_000_000)throw Error('Input grew above20MB');const bytes=buffer.subarray(0,count);const data:unknown=JSON.parse(bytes.toString('utf8'));if(!object(data))throw Error('Input must be a JSON object');validate(data);
  return{state:'available',file:absolute,sha256:createHash('sha256').update(bytes).digest('hex'),data};
  }catch(error){return{state:'failed',file:absolute,error:error instanceof Error?error.message:String(error)};}finally{if(fd!==undefined)closeSync(fd);}
 }
 /** Offline single-page comparison. Inputs are not scanned, executed or merged into a safety score. */
 export function auditReports(options:{eye?:string;leak?:string;outDir?:string;formats?:ReportFormat[]}):{report:AuditReport;paths:ReportPaths|null}{
- const eye=source(options.eye,validateEye),leak=source(options.leak,validateLeak);const warnings:string[]=[];
- if(eye.state!=='available')warnings.push(`Observation cost/noise source is ${eye.state}: not measured, not a pass.`);
- if(leak.state!=='available')warnings.push(`Hidden-instruction source is ${leak.state}: unknown, not safe.`);
+ const eye=source(options.eye,validateEye),leak=source(options.leak,validateLeak);const warnings:string[]=[];let incomplete=false;
+ if(eye.state!=='available'){incomplete=true;warnings.push(`Observation cost/noise source is ${eye.state}: not measured, not a pass.`);}
+ if(leak.state!=='available'){incomplete=true;warnings.push(`Hidden-instruction source is ${leak.state}: unknown, not safe.`);}
  let comparison:AuditReport['comparison']='unavailable';
  if(eye.data&&leak.data){
   const target=eye.data.target as Obj;
   comparison=url(target.url)===url(leak.data.url)&&url(target.finalUrl)===url(leak.data.finalUrl)?'same-target':'target-mismatch';
-  if(comparison==='target-mismatch')warnings.push('Requested or final target URLs differ. These results must not be treated as one measurement.');
+  if(comparison==='target-mismatch'){incomplete=true;warnings.push('Requested or final target URLs differ. These results must not be treated as one measurement.');}
   if(eye.data.generatedAt!==leak.data.createdAt)warnings.push('Measurement timestamps differ. Saved results do not prove the same page state.');
  }
- if(leak.data){const observations=leak.data.observations as Obj[];if(observations.some(o=>o.error||o.status===null||Number(o.status)>=400||o.blocked===true||o.rawTextError))warnings.push('Scan observations include errors, blocking or raw-source degradation. Coverage is incomplete.');}
- const report:AuditReport={schema:'agent-eye.audit/v1',sources:{eye,leak},warnings,comparison,exitCode:warnings.length?1:0};let paths:ReportPaths|null=null;
+ if(eye.data){const target=eye.data.target as Obj;if(target.status===null||Number(target.status)>=400){incomplete=true;warnings.push('Profile HTTP response failed or was unmeasured. Original metrics are retained, not a successful page observation.');}}
+ if(leak.data){
+ const observations=[...(leak.data.observations as Obj[])];
+ if(leak.data.vectors!==undefined){if(!Array.isArray(leak.data.vectors)){incomplete=true;warnings.push('Malformed vector coverage metadata.');}else for(const v of leak.data.vectors){if(!object(v)||!object(v.baseline)||!object(v.variant)||!object(v.comparison)){incomplete=true;warnings.push('Malformed vector coverage metadata.');continue;}observations.push(v.baseline,v.variant);if(['blocked','error'].includes(String(v.comparison.verdict))||v.comparison.rawComparable===false){incomplete=true;warnings.push('Additional vector scan failed, blocked or degraded. Coverage is incomplete.');}}}
+ if(observations.some(o=>o.error||o.status===null||Number(o.status)>=400||o.blocked===true||o.rawTextError)){incomplete=true;warnings.push('Scan observations include errors, blocking or raw-source degradation. Coverage is incomplete.');}}
+
+ const report:AuditReport={schema:'agent-eye.audit/v1',sources:{eye,leak},warnings,comparison,exitCode:incomplete?1:0};let paths:ReportPaths|null=null;
  if(options.outDir){mkdirSync(options.outDir,{recursive:true});const dir=mkdtempSync(join(options.outDir,'audit-'));paths={};for(const format of options.formats??['json','md','html']){const file=join(dir,'report.'+format);paths[format]=file;writeFileSync(file,format==='json'?JSON.stringify(report,null,2)+'\n':format==='md'?renderAuditMarkdown(report):renderAuditHtml(report));}}
  return{report,paths};
 }
