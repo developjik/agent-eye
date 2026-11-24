@@ -277,3 +277,33 @@ No claim is made that bounded discovery found every URL on a site.
 Crawl --screenshot measures screenshot token cost but does not save per-page
 image files; no image path is available in the aggregate. Redirect aliases share
 a canonical final URL and are marked DUPLICATE, excluded from totals/rankings.
+
+### Offline observation + hidden-instruction audit
+
+```sh
+agent-eye audit --eye profile/report.json --leak scan/snapshot.json \
+  --out saved-audit --format json,md,html
+```
+
+`audit` reads saved **single-URL** agent-eye profile schemaVersion2 and
+agentleak.snapshot/v1 JSON files. It never visits the site or runs the other tool.
+Both inputs are optional individually: an omitted, unreadable or invalid source
+is marked missing/failed, not a pass or a safe page. At least one file is required.
+It preserves original metrics/verdicts and scanner warning meanings in separate
+sections, with tool versions, requested/final URLs, measurement times, local-file
+links and SHA256 hashes. There is no combined safety score. Tokens/step are the
+original compact observation count, not a dollar cost. Scanner findings are
+warnings, not proof of intent; no findings is not a safety certificate.
+
+Requested/final URL or timestamp differences and incomplete scan observations
+are explicit warnings. Timestamp equality does not establish equal page contents.
+Exit0 means both sources were read and matched without coverage warnings, **not**
+that either tool passed its own gates or that the page is safe. Exit1 means a
+missing/failed/mismatched/incomplete input; exit2 is CLI usage. Existing profile,
+run, crawl and their exit codes are unchanged. Output uses a fresh audit-* folder.
+
+Each local input must be a non-symlink regular JSON file below20MB. Reports retain
+full source JSON, including evidence that may be sensitive. Keep reports private;
+local-file links are useful only where the original saved files remain accessible.
+No remote image, target URL, evidence markup or script is executed by the HTML
+report. A crawl aggregate is not accepted as a single-page snapshot.
