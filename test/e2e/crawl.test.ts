@@ -94,3 +94,10 @@ test('unescaped ampersands cannot hide before valid entities',()=>{
   expect(()=>parseSitemap('<urlset><url><loc>https://example.com/?a=1&b=2&amp;c=3</loc></url></urlset>')).toThrow(/entity/);
   expect(parseSitemap('<urlset><url><loc>https://example.com/?a=1&amp;b=2</loc></url></urlset>').locations).toEqual(['https://example.com/?a=1&b=2']);
 });
+
+
+test('invalid links still count toward discovery truncation', async()=>{
+  const server=createServer((req,res)=>{if(req.url==='/sitemap.xml'){res.writeHead(404);res.end();return;}res.setHeader('content-type','text/html');res.end('<button>Root</button>'+Array.from({length:2001},()=>'<a href="http://[broken">Bad</a>').join('')+'<a href="/unseen">Unseen</a>');});
+  await new Promise<void>(r=>server.listen(0,'127.0.0.1',r));const addr=server.address();if(!addr||typeof addr==='string')throw new Error('port');
+  try{const {report}=await crawlSite({url:`http://127.0.0.1:${addr.port}`,churnMs:0});expect(report.summary.complete).toBe(1);expect(report.warnings.join(' ')).toContain('2000');expect(report.exitCode).toBe(1);}finally{await new Promise<void>(r=>server.close(()=>r()));}
+},30000);
