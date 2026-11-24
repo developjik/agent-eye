@@ -286,14 +286,14 @@ export async function profileUrl(options: ProfileOptions): Promise<ProfileOutcom
 
   try {
     let navigationStatus: number | null = null;
-    if (options.collectLinks !== undefined) page.on('response', response => { if (response.request().isNavigationRequest() && response.frame() === page.mainFrame()) navigationStatus = response.status(); });
+    if (options.collectLinks !== undefined) page.on('response', response => { if (response.request().isNavigationRequest() && response.frame() === page.mainFrame() && ![204, 205].includes(response.status()) && !(response.status() >= 300 && response.status() < 400)) navigationStatus = response.status(); });
     const response = await page.goto(options.url, { waitUntil: options.waitUntil ?? "load", timeout: options.timeoutMs ?? 30_000 });
     let httpStatus = response?.status() ?? null;
     await settle(page);
     if (options.collectLinks !== undefined) httpStatus = navigationStatus ?? httpStatus;
     const finalUrl = page.url();
     const title = await page.title();
-    const links = options.collectLinks ? await page.locator("a[href]").evaluateAll(nodes => nodes.slice(0, 2001).map(node => new URL(node.getAttribute("href") ?? "", document.baseURI).href)) : undefined;
+    const links = options.collectLinks ? await page.locator("a[href]").evaluateAll(nodes => nodes.slice(0, 2001).flatMap(node => { try { return [new URL(node.getAttribute("href") ?? "", node.baseURI).href]; } catch { return []; } })) : undefined;
     log(`settled on ${finalUrl}`);
 
     const extracted = (await page.evaluate(extractPageElements, {
