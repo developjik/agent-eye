@@ -223,3 +223,5 @@ MIT
 ### 클릭 미측정
 
 클릭 검사를 끄거나 시도한 안전한 컨트롤이 없으면 `falseSuccessPct`는 측정된 0%가 아닌 `null`입니다. 보고서에 이유를 표시합니다. 이때 `--max-false-success` 게이트를 요청하면 실패하고 CLI는1로 종료합니다. 하나 이상 시도한 경우 기존 백분율과 임계값 계산을 유지합니다. 측정한 결과만 이 게이트를 통과할 수 있습니다.
+
+프로필 JSON은 `schemaVersion: 2`이며 `scorecard.falseSuccessPct`와 `actionTruth.falseSuccessPct`는 null을 허용합니다. 버전1 소비자는 null을 0이 아닌 미측정으로 처리해야 합니다. 별도 acceptance-run JSON 스키마는 버전1을 유지합니다.
