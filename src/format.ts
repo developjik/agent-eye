@@ -92,7 +92,12 @@ export function renderTable(headers: string[], rows: TableRow[], align: ("left" 
   return out.join("\n");
 }
 
-export function pct(value: number, digits = 0): string {
+export function pct(value: number | null, digits = 0): string {
+  if (value === null) return "not measured";
   if (!Number.isFinite(value)) return "—";
   return `${value.toFixed(digits)}%`;
+}
+
+export function actionMeasurementReason(report: { actionTruth: { attempted: number } | null }): string {
+  return report.actionTruth === null ? "probes disabled" : "no safe controls attempted";
 }
