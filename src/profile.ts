@@ -293,7 +293,7 @@ export async function profileUrl(options: ProfileOptions): Promise<ProfileOutcom
     if (options.collectLinks !== undefined) httpStatus = navigationStatus ?? httpStatus;
     const finalUrl = page.url();
     const title = await page.title();
-    const links = options.collectLinks ? await page.locator("a[href]").evaluateAll(nodes => nodes.slice(0, 2001).flatMap(node => { try { return [new URL(node.getAttribute("href") ?? "", node.baseURI).href]; } catch { return []; } })) : undefined;
+    const links = options.collectLinks ? await page.locator("a[href]").evaluateAll(nodes => nodes.slice(0, 2001).map(node => { try { return new URL(node.getAttribute("href") ?? "", node.baseURI).href; } catch { return ""; } })) : undefined;
     log(`settled on ${finalUrl}`);
 
     const extracted = (await page.evaluate(extractPageElements, {
