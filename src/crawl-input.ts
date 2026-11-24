@@ -8,7 +8,9 @@ export function integer(value: number, min: number, max: number, name: string): 
   return value;
 }
 function decodeXml(value: string): string {
-  if (/&(?:[^&;]{33}|[^&;]*$)/.test(value)) throw new Error('Malformed sitemap entity');
+  for (let i = value.indexOf('&'); i !== -1; i = value.indexOf('&', i + 1)) {
+    if (!/^&(?:amp|lt|gt|quot|apos|#x[0-9a-f]+|#\d+);/i.test(value.slice(i, i + 34))) throw new Error('Malformed sitemap entity');
+  }
   return value.replace(/&([^&;]{1,32});/g, (_, entity: string) => {
     const known: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
     if (known[entity] !== undefined) return known[entity];
