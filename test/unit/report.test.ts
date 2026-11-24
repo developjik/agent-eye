@@ -7,7 +7,7 @@ import type { RunReport } from "../../src/run/types.js";
 
 export function profileFixture(): ProfileReport {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     tool: { name: "agent-eye", version: "0.1.0" },
     generatedAt: "2026-11-22T00:00:00.000Z",
     target: { url: "https://example.com/cart", finalUrl: "https://example.com/cart", title: "Cart", status: 200, viewport: { width: 1280, height: 900 }, bytes: 204800 },
