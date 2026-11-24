@@ -27,6 +27,8 @@ import type {
 import { TOOL_NAME, VERSION } from "./version.js";
 
 export interface ProfileOptions {
+  /** Collect a bounded set of main-frame links before probes, for crawl. */
+  collectLinks?: boolean;
   url: string;
   outDir?: string;
   formats?: ReportFormat[];
@@ -52,6 +54,7 @@ export interface ProfileOptions {
 }
 
 export interface ProfileOutcome {
+  links?: string[];
   report: ProfileReport;
   paths: ReportPaths | null;
 }
@@ -282,11 +285,15 @@ export async function profileUrl(options: ProfileOptions): Promise<ProfileOutcom
   const { page, monitor } = session;
 
   try {
+    let navigationStatus: number | null = null;
+    if (options.collectLinks !== undefined) page.on('response', response => { if (response.request().isNavigationRequest() && response.frame() === page.mainFrame() && ![204, 205].includes(response.status()) && !(response.status() >= 300 && response.status() < 400)) navigationStatus = response.status(); });
     const response = await page.goto(options.url, { waitUntil: options.waitUntil ?? "load", timeout: options.timeoutMs ?? 30_000 });
-    const httpStatus = response?.status() ?? null;
+    let httpStatus = response?.status() ?? null;
     await settle(page);
+    if (options.collectLinks !== undefined) httpStatus = navigationStatus ?? httpStatus;
     const finalUrl = page.url();
     const title = await page.title();
+    const links = options.collectLinks ? await page.locator("a[href]").evaluateAll(nodes => nodes.slice(0, 2001).map(node => { try { return new URL(node.getAttribute("href") ?? "", node.baseURI).href; } catch { return ""; } })) : undefined;
     log(`settled on ${finalUrl}`);
 
     const extracted = (await page.evaluate(extractPageElements, {
@@ -397,7 +404,7 @@ export async function profileUrl(options: ProfileOptions): Promise<ProfileOutcom
       paths = writeProfileReports(report, options.outDir, options.formats ?? ["json", "md"], screenshotPath);
     }
 
-    return { report, paths };
+    return { report, paths, ...(links ? { links } : {}) };
   } finally {
     await session.close();
   }

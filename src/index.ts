@@ -18,3 +18,5 @@ export { DEMO_PAGES } from "./demo/pages.js";
 export { TOOL_NAME, VERSION } from "./version.js";
 export type * from "./types.js";
 export type * from "./run/types.js";
+
+export * from './crawl.js';

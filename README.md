@@ -229,3 +229,51 @@ Profile JSON uses `schemaVersion: 2`: `scorecard.falseSuccessPct` and `actionTru
 ## Development baseline (DEV-128)
 
 Use Node.js 22.12.0 (`.nvmrc`) for development and CI. Vitest 5.1.1 requires Node 22.12+ on its supported release lines; Node 20.19 is outside its declared development support range. It may execute there, but CI does not treat that as supported test-runner usage. This development requirement does not change the package engine declaration. Runtime compatibility must be checked using the built package, separately from the test runner. TypeScript 7.0.2 is the development compiler baseline.
+
+
+## Site crawl
+
+```sh
+agent-eye crawl https://your-site.example --out audit --format json,md,html
+agent-eye crawl https://your-site.example --sitemap https://your-site.example/sitemap.xml --budget-tokens 8000
+agent-eye crawl https://your-site.example --max-pages 100 --concurrency 2 --max-noise-pct 20
+```
+
+Crawl tries `/sitemap.xml` (urlset or sitemapindex), then falls back to same-origin
+rendered links using breadth-first batches. An explicit --sitemap must load and
+parse successfully. Only HTTP(S) URLs without credentials are allowed. Fragments
+are removed and URLs deduplicated. Sitemap documents and redirects stay on the
+root origin; profile navigation still follows browser redirects before an
+outside-origin final page is marked incomplete and excluded from totals. This
+is not a network sandbox. Only audit sites you own or are allowed to test.
+
+Default100 pages (1..1000),2 concurrent profiles (1..4),20 sitemap documents,
+5MB decoded XML per document,32 levels,64 namespaces and2000 links per page
+bound the discovery. DTD/entity declarations are rejected. Invalid child maps
+or locations are recorded as warnings; discovery caps are explicit. A compressed
+.gz file is unsupported unless HTTP Content-Encoding serves decoded XML.
+
+Crawl defaults differ deliberately from single-page profile: click probes and
+screenshots are off, and optional storage-state requires a site you trust.
+Use --probes 5 or --screenshot to opt in. Probes can perform real actions and
+repeat server-side effects. The existing profile/run defaults are unchanged.
+Each profile has its own browser context. JavaScript in loaded pages still runs.
+
+The aggregate report holds a full profile per page, a per-page table, total/mean
+compact interactive tokens, mean page noise percentage, highest-token and
+highest-noise rankings. Totals describe one observation per complete page, not a
+forecast of a real agent task. Failed/HTTP-error/cross-origin pages are recorded
+but excluded from sums/means. Budget gates remain per-page, including explicit
+unmeasured gates. Any page gate failure, failed page or truncated/incomplete
+discovery makes crawl exit1, matching profile's runtime/gate-failure code.
+CLI usage errors exit2. Existing single-page commands and outputs stay unchanged.
+
+--out writes a unique crawl-* folder with selected report.json/.md/.html files.
+Report URLs/snippets are untrusted data and escaped for Markdown/HTML; HTML has
+no scripts or external resources. JSON keeps original evidence. Full profiles
+remain in memory, so lower max-pages/concurrency for unusually large pages.
+No claim is made that bounded discovery found every URL on a site.
+
+Crawl --screenshot measures screenshot token cost but does not save per-page
+image files; no image path is available in the aggregate. Redirect aliases share
+a canonical final URL and are marked DUPLICATE, excluded from totals/rankings.
