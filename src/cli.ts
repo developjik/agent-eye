@@ -1,3 +1,4 @@
+import { auditReports, renderAuditTerminal } from "./audit.js";
 import { crawlSite, renderCrawlTerminal } from "./crawl.js";
 import { loadSpec } from "./run/spec.js";
 import { runAcceptance } from "./run/runner.js";
@@ -9,6 +10,7 @@ import type { TokenizerName } from "./types.js";
 import { TOOL_NAME, VERSION } from "./version.js";
 
 const VALUE_FLAGS = new Set([
+  "eye", "leak",
   "sitemap", "max-pages", "concurrency",
   "out",
   "format",
@@ -87,6 +89,7 @@ const HELP = `agent-eye ${VERSION} — what an AI agent actually sees on your pa
 
 Usage
   agent-eye <url>                 profile a page (same as \`agent-eye profile <url>\`)
+  agent-eye audit --eye profile.json --leak snapshot.json  offline single-page report
   agent-eye crawl <url>           same-origin sitemap or BFS site profiles
   agent-eye profile <url>         observation bill, noise, churn, delta headroom, action truth
   agent-eye run <spec.yaml|json>  run a deterministic acceptance spec and gate the result
@@ -225,6 +228,14 @@ export async function runCli(argv: string[]): Promise<number> {
   }
 
   try {
+    if (command === "audit") {
+      const allowed=new Set(['eye','leak','out','format','quiet']);for(const name of flags.keys())if(!allowed.has(name))throw new UsageError(`Unknown audit option --${name}`);
+      for(const name of ['eye','leak','out','format'])if(flags.has(name)&&(!stringFlag(name)))throw new UsageError(`--${name} requires a value`);
+      if(args.length)throw new UsageError('audit accepts --eye and --leak saved files, not a URL');
+      if(!stringFlag('eye')&&!stringFlag('leak'))throw new UsageError('audit needs at least one saved input: --eye or --leak');
+      const {report,paths}=auditReports({eye:stringFlag('eye'),leak:stringFlag('leak'),outDir:stringFlag('out'),formats:formats(['json','md','html'])});
+      if(!quiet)stdout.write(renderAuditTerminal(report));if(paths&&!quiet)stdout.write(JSON.stringify(paths)+'\n');return report.exitCode;
+    }
     if (command === "crawl") {
       for (const name of VALUE_FLAGS) if (flags.has(name) && (flags.get(name) === '' || flags.get(name) === true)) throw new UsageError(`--${name} requires a value`);
       for (const [name, min, max] of [['max-pages',1,1000],['concurrency',1,4]] as const) { const value = numberFlag(name); if (value !== undefined && (!Number.isInteger(value) || value < min || value > max)) throw new UsageError(`--${name} must be an integer from ${min} to ${max}`); }
