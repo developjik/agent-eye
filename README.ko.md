@@ -225,3 +225,7 @@ MIT
 클릭 검사를 끄거나 시도한 안전한 컨트롤이 없으면 `falseSuccessPct`는 측정된 0%가 아닌 `null`입니다. 보고서에 이유를 표시합니다. 이때 `--max-false-success` 게이트를 요청하면 실패하고 CLI는1로 종료합니다. 하나 이상 시도한 경우 기존 백분율과 임계값 계산을 유지합니다. 측정한 결과만 이 게이트를 통과할 수 있습니다.
 
 프로필 JSON은 `schemaVersion: 2`이며 `scorecard.falseSuccessPct`와 `actionTruth.falseSuccessPct`는 null을 허용합니다. 버전1 소비자는 null을 0이 아닌 미측정으로 처리해야 합니다. 별도 acceptance-run JSON 스키마는 버전1을 유지합니다.
+
+## 개발 기준선 (DEV-128)
+
+개발과 CI는 Node.js 22.12.0(`.nvmrc`) 이상을 사용합니다. Vitest 5.1.1의 공식 지원 범위에는 Node 20.19가 없습니다. 실행이 된다는 이유로 공식 지원이라고 부르지 않습니다. 패키지 사용자의 기존 engines는 유지합니다. Node 20 지원 패키지는 테스트 러너 없이 빌드한 tarball의 운영 의존성만 설치하고 CLI/import를 별도로 검사합니다. 개발 TypeScript 기준은 7.0.2입니다.

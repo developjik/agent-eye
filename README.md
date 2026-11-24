@@ -225,3 +225,7 @@ MIT
 `falseSuccessPct` is `null` when probes are disabled or no safe control was attempted, not a measured 0%. Reports state the reason. A requested `--max-false-success` gate fails in either case and the CLI exits 1. With at least one attempted control, the existing percentage and threshold rules apply. Only measured results can pass this gate.
 
 Profile JSON uses `schemaVersion: 2`: `scorecard.falseSuccessPct` and `actionTruth.falseSuccessPct` are nullable. Consumers of version 1 must handle `null` as unmeasured, not zero. Acceptance-run JSON keeps its separate version 1 schema.
+
+## Development baseline (DEV-128)
+
+Use Node.js 22.12.0 (`.nvmrc`) for development and CI. Vitest 5.1.1 requires Node 22.12+ on its supported release lines; Node 20.19 is outside its declared development support range. It may execute there, but CI does not treat that as supported test-runner usage. This development requirement does not change the package engine declaration. Runtime compatibility must be checked using the built package, separately from the test runner. TypeScript 7.0.2 is the development compiler baseline.
