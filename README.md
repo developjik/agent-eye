@@ -273,3 +273,7 @@ Report URLs/snippets are untrusted data and escaped for Markdown/HTML; HTML has
 no scripts or external resources. JSON keeps original evidence. Full profiles
 remain in memory, so lower max-pages/concurrency for unusually large pages.
 No claim is made that bounded discovery found every URL on a site.
+
+Crawl --screenshot measures screenshot token cost but does not save per-page
+image files; no image path is available in the aggregate. Redirect aliases share
+a canonical final URL and are marked DUPLICATE, excluded from totals/rankings.
